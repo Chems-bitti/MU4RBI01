@@ -1,2 +1,4 @@
-print("test")
-x = 3
+from Cards import *
+
+c = Chemin(3, "URL", '+')
+c.affMat()
