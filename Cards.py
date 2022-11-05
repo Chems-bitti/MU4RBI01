@@ -2,28 +2,30 @@ class Carte() :
     def __init__(self, Nombre) :
         self.Nombre = Nombre
         self.posee = False
+        self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
 
 class Depart(Carte) :
     def __init__(self) :
         super().__init__(1)
-        self.Mat = [[1,0,1],[0,0,0],[1,0,1]]
+        self.Mat = [[1,0,1],[0,2,0],[1,0,1]]
+    def affMat(self) :
+        for i in self.Mat :
+            for j in i :
+                if j != 0 :
+                    print(u"\u2588"*2, end='')
+                    continue
+                print(' '*2, end='')
+            print(' ')
 
 class Arrivee(Carte) :
     def __init__(self, Nombre, Code, Type) :
         super().__init__(Nombre)
         self.Code = Code
         self.Type = Type
-        self.getMat()
+        #Bloquée au début
+        self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
+        self.State = "Hidden"
     
-    def getMat(self) :
-        if self.Type == 'G' :
-            self.Mat = [[1,0,1], [0,0,0],[1,0,1]]
-        elif self.Code == "LD" :
-            self.Mat = [[1,1,1],[0,0,1],[1,0,1]]
-        elif self.Code == "UR" :
-            self.Mat = [[1,0,1],[1,0,0],[1,1,1]]
-        else :
-            pass
         
 class Chemin(Carte) :
     def __init__(self, Nombre, Code, Type) :
