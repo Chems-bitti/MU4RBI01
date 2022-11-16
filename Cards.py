@@ -8,6 +8,7 @@ class Depart(Carte) :
     def __init__(self) :
         super().__init__(1)
         self.Mat = [[1,0,1],[0,2,0],[1,0,1]]
+        self.posee = True
     def affMat(self) :
         for i in self.Mat :
             for j in i :
@@ -22,6 +23,7 @@ class Arrivee(Carte) :
         super().__init__(Nombre)
         self.Code = Code
         self.Type = Type
+        self.posee = True
         #Bloquée au début
         self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
         self.State = "Hidden"
