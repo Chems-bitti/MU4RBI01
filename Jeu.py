@@ -57,6 +57,7 @@ class Table() :
             
     def checkPosValid(self, c, x, y) :
         # Vérifier si c'est à coté d'une carte posée
+        
         posValid = []
         if self.Mat[x][y].posee :
             return False
@@ -75,20 +76,28 @@ class Table() :
             return False
         posValid = []
         # Vérifier le chemin par rapports aux cartes posées 
-        if (self.Mat[x-1][y].Mat[1][2] != c.Mat[1][0]) and self.Mat[x-1][y].posee :
+        if (self.Mat[x-1][y].Mat[2][1] != c.Mat[0][1]) and self.Mat[x-1][y].posee :
+            print("test")
             posValid.append(False)
         
-        if (self.Mat[x+1][y].Mat[1][0] != c.Mat[1][2]) and self.Mat[x+1][y].posee :
+        if (self.Mat[x+1][y].Mat[0][1] != c.Mat[2][1]) and self.Mat[x+1][y].posee :
+            print("test1")
             posValid.append(False)
     
-        if (self.Mat[x][y-1].Mat[2][1] != c.Mat[0][1]) and self.Mat[x][y-1].posee :
+        if (self.Mat[x][y-1].Mat[1][2] != c.Mat[1][0]) and self.Mat[x][y-1].posee :
             posValid.append(False)
 
-        if (self.Mat[x][y+1].Mat[0][1] != c.Mat[2][1]) and self.Mat[x][y+1].posee :
+        if (self.Mat[x][y+1].Mat[1][0] != c.Mat[1][2]) and self.Mat[x][y+1].posee :
+            print("test3")
             posValid.append(False)
         if False in posValid :
             return False
         return True
+    def verifChemin(self, c, pos) :
+        x = int(pos/9)
+        y = pos%9
+        res = self.checkPosValid(c, x, y)
+        return res
     
 t = Table()
 t.affTable()
@@ -98,8 +107,4 @@ print(t.checkPosValid(c, 2, 1))
 
 t.Mat[2][1] = c
 t.affTable()
-c = Chemin(1, 'ULR', '+')
-print(t.checkPosValid(c, 2, 1))
-
-t.Mat[2][1] = c
-t.affTable()
+print(t.verifChemin(c,20))
