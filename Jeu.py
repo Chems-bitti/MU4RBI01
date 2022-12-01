@@ -253,37 +253,133 @@ class StartMenu() :
         starty = int(0.2*self.MaxY)
         startHeight = int(0.6*self.MaxY)
         startWidth = int(0.6*self.MaxX)
-        self.info = uni.newwin(startHeight, startWidth, starty, startx)
-        uni.box(self.info, 0, 0)
-        uni.mvwaddstr(self.info, starty+1, startx-5, "Nombre de Joueurs : ")
-        uni.wrefresh(self.info)
+        info = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(info, 0, 0)
+        uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+        uni.wrefresh(info)
         while True :
             uni.echo()
-            nombreJoueurs = uni.mvwgetstr(self.info, starty+1, startx-5+21)
+            nombreJoueurs = uni.mvwgetstr(info, starty+1, startx-5+21)
             uni.noecho()
             try :
                 self.nombreJoeurs = int(nombreJoueurs)
             except :
-                uni.mvwaddstr(self.info, starty+1, startx-5, "Nombre de Joueurs : ")
-                uni.wclrtoeol(self.info)
-                uni.mvwaddstr(self.info, starty+3, startx-10, "Veuillez donner un nombre valide")
-                uni.wclrtoeol(self.info)
-                uni.wrefresh(self.info)
+                uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+                uni.wclrtoeol(info)
+                uni.mvwaddstr(info, starty+3, startx-10, "Veuillez donner un nombre valide")
+                uni.wclrtoeol(info)
+                uni.box(info, 0, 0)
+                uni.wrefresh(info)
                 continue
             if self.nombreJoeurs > 10 or self.nombreJoeurs < 3 :
-                uni.mvwaddstr(self.info, starty+3, startx-10, "Veuillez donner un nombre entre 3 et 10")
-                uni.wclrtoeol(self.info)
-                uni.wrefresh(self.info)
+                uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+                uni.wclrtoeol(info)
+                uni.mvwaddstr(info, starty+3, startx-10, "Veuillez donner un nombre entre 3 et 10")
+                uni.wclrtoeol(info)
+                uni.box(info, 0, 0)
+                uni.wrefresh(info)
                 continue
             break
                 
             
-        uni.wgetch(self.info)
-        self.printStart()
 
+class Jeu() :
+    def __init__(self) :
+        self.scr = StartMenu()
+        self.nombreJoueurs = self.scr.nombreJoeurs #juste pour ne pas écrire scr à chaque fois
+        self.listJoueurs = []
+        self.getPlayers()
+        self.giveRoles()
+    def getPlayers(self) :
+        uni.clear()
+        startx = int(0.2*self.scr.MaxX) 
+        starty = int(0.2*self.scr.MaxY)
+        startHeight = int(0.6*self.scr.MaxY)
+        startWidth = int(0.6*self.scr.MaxX)
+        info = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(info, 0, 0)
+        for i in range(self.nombreJoueurs) :
+            j = Joueur()
+            j.id = i 
+            uni.echo()
+            uni.mvwaddstr(info, starty+1, startx-10, f"Nom du joueur {i} :")
+            uni.wclrtoeol(info)
+            uni.box(info, 0, 0)
+            uni.wrefresh(info)
+            s = uni.mvwgetstr(info, starty+1, startx-10+18)
+            j.name = s
+            self.listJoueurs.append(j)
+    def giveRoles(self) :
+        #copie locale de la liste des joueurs car on en aura besoin
+        listJoueurs = self.listJoueurs.copy()
+        # copie locale du nombre de joueur car j'ai la flemme d'écrire self à chaque fois
+        n = self.nombreJoueurs
+        if n == 3 :
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 4 :
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 5 :
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 6 :
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 7 :
+            for i in range(3) :
+                j = choice(listJoueurs)
+                j.Role = "Saboteur"
+                listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 8 :
+            for i in range(3) :
+                j = choice(listJoueurs)
+                j.Role = "Saboteur"
+                listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 9 :
+            for i in range(3) :
+                j = choice(listJoueurs)
+                j.Role = "Saboteur"
+                listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        if n == 10 :
+            for i in range(4) :
+                j = choice(listJoueurs)
+                j.Role = "Saboteur"
+                listJoueurs.remove(j)
+            for j in listJoueurs :
+                j.Role = "Mineur"
+        for j in self.listJoueurs :
+            print(j.Role)
+            
 
+            
         
-scr = StartMenu()
+        
+j = Jeu()
 """
     
 t = Table()
