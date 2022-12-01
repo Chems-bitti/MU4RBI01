@@ -227,6 +227,7 @@ class StartMenu() :
             if c == 10 :
                 if choice == 1 :
                     self.renseignements()
+                    break
                 elif choice == 2 :
                     self.showRules()
                 else:
@@ -247,20 +248,42 @@ class StartMenu() :
         uni.clear()
         self.printStart()
     def renseignements(self) :
-        startx = int(0.35*self.MaxX) 
-        starty = int(0.35*self.MaxY)
-        startHeight = int(0.3*self.MaxY)
-        startWidth = int(0.3*self.MaxX)
+        uni.clear()
+        startx = int(0.2*self.MaxX) 
+        starty = int(0.2*self.MaxY)
+        startHeight = int(0.6*self.MaxY)
+        startWidth = int(0.6*self.MaxX)
         self.info = uni.newwin(startHeight, startWidth, starty, startx)
         uni.box(self.info, 0, 0)
-        uni.mvwaddstr(self.info, starty, startx, "Nombre de Joueurs : ")
+        uni.mvwaddstr(self.info, starty+1, startx-5, "Nombre de Joueurs : ")
         uni.wrefresh(self.info)
+        while True :
+            uni.echo()
+            nombreJoueurs = uni.mvwgetstr(self.info, starty+1, startx-5+21)
+            uni.noecho()
+            try :
+                self.nombreJoeurs = int(nombreJoueurs)
+            except :
+                uni.mvwaddstr(self.info, starty+1, startx-5, "Nombre de Joueurs : ")
+                uni.wclrtoeol(self.info)
+                uni.mvwaddstr(self.info, starty+3, startx-10, "Veuillez donner un nombre valide")
+                uni.wclrtoeol(self.info)
+                uni.wrefresh(self.info)
+                continue
+            if self.nombreJoeurs > 10 or self.nombreJoeurs < 3 :
+                uni.mvwaddstr(self.info, starty+3, startx-10, "Veuillez donner un nombre entre 3 et 10")
+                uni.wclrtoeol(self.info)
+                uni.wrefresh(self.info)
+                continue
+            break
+                
+            
         uni.wgetch(self.info)
+        self.printStart()
 
-        #s = uni.mvgetstr(starty+3, startx+6+21)
 
         
-self.scr = StartMenu()
+scr = StartMenu()
 """
     
 t = Table()
