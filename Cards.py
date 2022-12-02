@@ -1,12 +1,11 @@
 class Carte() :
-    def __init__(self, Nombre) :
-        self.Nombre = Nombre
+    def __init__(self) :
         self.posee = False
         self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
 
 class Depart(Carte) :
     def __init__(self) :
-        super().__init__(1)
+        super().__init__()
         self.Mat = [[1,0,1],[0,2,0],[1,0,1]]
         self.posee = True
     def affMat(self) :
@@ -19,8 +18,8 @@ class Depart(Carte) :
             print(' ')
 
 class Arrivee(Carte) :
-    def __init__(self, Nombre, Code, Type) :
-        super().__init__(Nombre)
+    def __init__(self, Code, Type) :
+        super().__init__()
         self.Code = Code
         self.Type = Type
         self.posee = True
@@ -30,8 +29,8 @@ class Arrivee(Carte) :
     
         
 class Chemin(Carte) :
-    def __init__(self, Nombre, Code, Type) :
-        super().__init__(Nombre)
+    def __init__(self, Code, Type) :
+        super().__init__()
         self.Code = Code
         self.Type = Type
         self.getMat()
@@ -57,17 +56,17 @@ class Chemin(Carte) :
             print(' ')
 
 class Action(Carte) :
-    def __init__(self, Nombre, Code, Type) :
-        super().__init__(Nombre)
+    def __init__(self, Code, Type) :
+        super().__init__()
         self.Code = Code
         self.Type = Type
 
 class Nain(Carte) :
-    def __init__(self, Nombre, Type) :
-        super().__init__(Nombre)
+    def __init__(self, Type) :
+        super().__init__()
         self.Type = Type
 
 class Or(Carte) :
-    def __init__(self, Nombre, value) :
-        super().__init__(Nombre)
+    def __init__(self, value) :
+        super().__init__()
         self.Value = value        

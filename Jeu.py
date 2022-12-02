@@ -15,20 +15,20 @@ class Table() :
         l = [1, 3, 5]
         # random choice pour l'or
         goldIdx = choice(l)
-        self.Mat[goldIdx][-1] = Arrivee(1, '', 'G')
+        self.Mat[goldIdx][-1] = Arrivee('', 'G')
         # le reste
         l.remove(goldIdx)
-        self.Mat[l[0]][-1] = Arrivee(1, "LD", 'C')
-        self.Mat[l[1]][-1] = Arrivee(1, 'UR', 'C')       
+        self.Mat[l[0]][-1] = Arrivee("LD", 'C')
+        self.Mat[l[1]][-1] = Arrivee('UR', 'C')       
     def resetMat(self) :
         for i in range(self.dimY) :
             line = []
             for j in range(self.dimX) :
-                line.append(Carte(1))
+                line.append(Carte())
             self.Mat.append(line)
             
     def addLine(self, pos) :
-        vec = [Carte(1)]*self.dimX
+        vec = [Carte()]*self.dimX
         if pos == "up" :
             self.Mat.insert(0,vec)
         else :
@@ -37,9 +37,9 @@ class Table() :
     def addCollumn(self, pos) :
         for line in self.Mat :
             if pos == "right" :
-                line.append(Carte(1))
+                line.append(Carte())
             else : 
-                line.insert(0,Carte(1))
+                line.insert(0,Carte())
             self.dimX += 1
     """ Fonction d'affichage de la table"""
     def affTable(self) :
@@ -58,7 +58,7 @@ class Table() :
                             if card.Mat[j][i] == 4 :
                                 print(u" C", end='')
                             if i == j == 1  and not card.posee:
-                                if q < 10 :
+                                if q < self.dimX :
                                     print(q,' ', sep='', end='')
                                     continue
                                         
@@ -120,49 +120,48 @@ class Table() :
 
 
 class Joueur():
-    def _init_(self, id):
-
+    def __init__(self, id):
         self.Role=None
         self.name = None
         self.Score=0
         self.id=id
-        self.cartes=[]
+        self.Cards=[]
         self.state={"pioche":0, "lampe":0,"chariot":0}
 
     def creerJoueur(self, nom):
         self.name=nom
 
     def poserCarte(self,carte):
-        self.cartes.remove(carte)
+        self.Cards.remove(carte)
 
 
     def Action(self,carteAction):
-        if carteAction.code=="P":
+        if "P" in carteAction.code:
             if carteAction.type=="+":
                 self.state["pioche"]+=1
-                return
-        self.state["pioche"]-=1
+            else :
+                self.state["pioche"]-=1
 
-        if carteAction.code=="L":
+        if "L" in carteAction.code:
             if carteAction.type=="+":
                 self.state["lampe"]+=1
-                return
-        self.state["lampe"]-=1
+            else :
+                self.state["lampe"]-=1
 
-        if carteAction.code=="C":
+        if "C" in carteAction.code:
             if carteAction.type=="+":
                 self.state["chariot"]+=1
-                return
-        self.state["chariot"]-=1
+            else :
+                self.state["chariot"]-=1
 
 
     def piocher(self,carte):
-        self.carte.append(carte)
+        self.Cards.append(carte)
 
     def passerTour(self):
         c=input("quelle carte pour passer le tour?:")
 
-        return self.cartes[c+1]
+        return self.Cards[c+1]
 
 class StartMenu() :
     def __init__(self) :
@@ -259,7 +258,9 @@ class StartMenu() :
         uni.wrefresh(info)
         while True :
             uni.echo()
+            uni.curs_set(1)
             nombreJoueurs = uni.mvwgetstr(info, starty+1, startx-5+21)
+            uni.curs_set(0)
             uni.noecho()
             try :
                 self.nombreJoeurs = int(nombreJoueurs)
@@ -288,8 +289,13 @@ class Jeu() :
         self.scr = StartMenu()
         self.nombreJoueurs = self.scr.nombreJoeurs #juste pour ne pas écrire scr à chaque fois
         self.listJoueurs = []
+        self.Deck = []
         self.getPlayers()
         self.giveRoles()
+        self.initDeck()
+        self.giveCards()
+        self.t = Table()
+        self.printInterface(self.listJoueurs[0])
     def getPlayers(self) :
         uni.clear()
         startx = int(0.2*self.scr.MaxX) 
@@ -299,14 +305,16 @@ class Jeu() :
         info = uni.newwin(startHeight, startWidth, starty, startx)
         uni.box(info, 0, 0)
         for i in range(self.nombreJoueurs) :
-            j = Joueur()
-            j.id = i 
+            j = Joueur(i)
             uni.echo()
             uni.mvwaddstr(info, starty+1, startx-10, f"Nom du joueur {i} :")
             uni.wclrtoeol(info)
             uni.box(info, 0, 0)
             uni.wrefresh(info)
+            uni.curs_set(1)
             s = uni.mvwgetstr(info, starty+1, startx-10+18)
+            uni.curs_set(0)
+            uni.noecho()
             j.name = s
             self.listJoueurs.append(j)
     def giveRoles(self) :
@@ -314,83 +322,98 @@ class Jeu() :
         listJoueurs = self.listJoueurs.copy()
         # copie locale du nombre de joueur car j'ai la flemme d'écrire self à chaque fois
         n = self.nombreJoueurs
-        if n == 3 :
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 4 :
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 5 :
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 6 :
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            j = choice(listJoueurs)
-            j.Role = "Saboteur"
-            listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 7 :
-            for i in range(3) :
-                j = choice(listJoueurs)
-                j.Role = "Saboteur"
-                listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 8 :
-            for i in range(3) :
-                j = choice(listJoueurs)
-                j.Role = "Saboteur"
-                listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
-        if n == 9 :
-            for i in range(3) :
-                j = choice(listJoueurs)
-                j.Role = "Saboteur"
-                listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
+        N = 1
+        if 5 <= n <= 6 :
+            N = 2
+        if 7 <=n <=9  :
+            N = 3
         if n == 10 :
-            for i in range(4) :
-                j = choice(listJoueurs)
-                j.Role = "Saboteur"
-                listJoueurs.remove(j)
-            for j in listJoueurs :
-                j.Role = "Mineur"
+            N = 4
+        for i in range(N) :
+            j = choice(listJoueurs)
+            j.Role = "Saboteur"
+            listJoueurs.remove(j)
+        for j in listJoueurs :
+            j.Role = "Mineur"
+        
+    def initDeck(self) :
+        with open("chemin.txt") as f :
+            lines = f.readlines()
+            for line in lines :
+                s = line.split()
+                #sert à rien de vérifier mais bon au cas
+                #où l'utilisateur change le fichier
+                if len(s) < 3 :
+                    continue
+                for i in range(int(s[0])) :
+                    self.Deck.append(Chemin(s[1], s[2]))
+        with open("action.txt") as f :
+            lines = f.readlines()
+            for line in lines :
+                s=line.split()
+                if len(s) < 3 :
+                    continue
+                for i in range(int(s[0])) :
+                    self.Deck.append(Action(s[1], s[2]))
+        # je viens vraiment d'écrire cette monstruosité...
+    def giveCards(self) :
+        N = 6
+        if 6 <= self.nombreJoueurs <= 7 :
+            N = 5
+        if self.nombreJoueurs > 7 :
+            N = 4
         for j in self.listJoueurs :
-            print(j.Role)
-            
+            for _ in range(N) :
+                c = choice(self.Deck)
+                j.piocher(c)
+                self.Deck.remove(c)
 
-            
-        
-        
-j = Jeu()
-"""
+    def printInterface(self, j : Joueur) :
+        uni.clear()
+        startx = 0
+        starty = 0
+        startHeight = self.scr.MaxY
+        startWidth = self.scr.MaxX
+        interface = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(interface, 0, 0)
+        uni.mvwaddstr(interface, starty+1, startx+20, "Tour du joueur " + str(j.id) + " : " + str(j.name))
+        uni.wrefresh(interface)
+        self.printTable(interface)
+        uni.wgetch(interface)
+        pass
     
-t = Table()
-t.affTable()
+    def printTable(self, interface) :
+        startx = 3
+        starty = 3
+        uni.mvwaddch(interface,starty, startx, " ")
+        q = 0
+        for line in self.t.Mat :
+            for i, card in enumerate(line) :
+                startx = 3 +i*6
+                for y in range(3) :
+                    for x in range(3) :
+                        if card.Mat[y][x] == 0:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, "  ")
+                            continue
+                        if card.Mat[y][x] == 1:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, u"\u2588"*2 )
 
-c = Chemin(1, 'ULR', '+')
-print(t.checkPosValid(c, 3, 2))
-
-t.Mat[3][2] = c
-t.affTable()
-print(t.verifChemin(c,35))
-t.addLine("")
-t.affTable()
-"""
+                        if y == x == 1  and not card.posee:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, f"{q}")
+                            #print(q,' ', sep='', end='')
+                            continue
+                            
+                        if card.Mat[y][x] == 2:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, "D")
+                            continue
+        
+                        if card.Mat[y][x] == 3:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, "G")
+                            continue
+        
+                        if card.Mat[y][x] == 4:
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, "C")
+                            continue
+                q +=1
+            starty += 3
+j = Jeu()
