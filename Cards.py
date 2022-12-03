@@ -22,10 +22,15 @@ class Arrivee(Carte) :
         super().__init__()
         self.Code = Code
         self.Type = Type
-        self.posee = True
         #Bloquée au début
         self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
         self.State = "Hidden"
+    def reveal(self) :
+        if self.Type == "G" :
+            self.Mat = [[1,0,1],[0,3,0],[1,0,1]]
+        if self.Type == "C" :
+            self.Mat = [[1,0,1],[0,4,0],[1,0,1]]
+        self.posee = True
     
         
 class Chemin(Carte) :

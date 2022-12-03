@@ -15,7 +15,7 @@ class Table() :
         l = [1, 3, 5]
         # random choice pour l'or
         goldIdx = choice(l)
-        self.Mat[goldIdx][-1] = Arrivee('', 'G')
+        self.Mat[goldIdx][-1] = Arrivee('ULDR', 'G')
         # le reste
         l.remove(goldIdx)
         self.Mat[l[0]][-1] = Arrivee("LD", 'C')
@@ -40,7 +40,7 @@ class Table() :
                 line.append(Carte())
             else : 
                 line.insert(0,Carte())
-            self.dimX += 1
+        self.dimX += 1
     """ Fonction d'affichage de la table"""
     def affTable(self) :
         
@@ -75,21 +75,34 @@ class Table() :
             
     def checkPosValid(self, c, x, y) :
         # Vérifier si c'est à coté d'une carte posée
-        
+        if x > self.dimY or x < 0 :
+            print("x invalide ?", x, self.dimY)
+            return False
+        if y > self.dimX or y < 0 :
+            print("y invalid ?", y, self.dimX)
+            return False
         posValid = []
         if self.Mat[x][y].posee :
+            print(f"mat",x, y)
             return False
-        if not self.Mat[x-1][y].posee :
-            posValid.append(False)
-        
-        if not self.Mat[x+1][y].posee :
-            posValid.append(False)
+        if x-1 > 0 :
+            if not self.Mat[x-1][y].posee :
+                print(f"mat",x-1, y)
+                posValid.append(False)
+        if x+1 < self.dimY :
+            if not self.Mat[x+1][y].posee :
+                print(f"mat",x+1, y)
+                posValid.append(False)
+        if y-1 > 0 :
     
-        if not self.Mat[x][y-1].posee :
-            posValid.append(False)
+            if not self.Mat[x][y-1].posee :
+                print(f"mat",x, y-1)
+                posValid.append(False)
 
-        if not self.Mat[x][y-1].posee :
-            posValid.append(False)
+        if y+1 < self.dimX :
+            if not self.Mat[x][y+1].posee :
+                print(f"mat",x, y+1)
+                posValid.append(False)
         if len(posValid) == 4 :
             return False
         posValid = []
@@ -117,6 +130,13 @@ class Table() :
         y = pos%self.dimX
         res = self.checkPosValid(c, x, y)
         return res
+    def putCard(self, c, pos) :
+        print("Valid")
+        c.posee = True
+        y = int(pos/self.dimX)
+        x = pos%self.dimX
+        self.Mat[y][x] = c
+        
 
 
 class Joueur():
@@ -136,20 +156,20 @@ class Joueur():
 
 
     def Action(self,carteAction):
-        if "P" in carteAction.code:
-            if carteAction.type=="+":
+        if "P" in carteAction.Code:
+            if carteAction.Type=="+":
                 self.state["pioche"]+=1
             else :
                 self.state["pioche"]-=1
 
-        if "L" in carteAction.code:
-            if carteAction.type=="+":
+        if "L" in carteAction.Code:
+            if carteAction.Type=="+":
                 self.state["lampe"]+=1
             else :
                 self.state["lampe"]-=1
 
-        if "C" in carteAction.code:
-            if carteAction.type=="+":
+        if "C" in carteAction.Code:
+            if carteAction.Type=="+":
                 self.state["chariot"]+=1
             else :
                 self.state["chariot"]-=1
@@ -158,10 +178,8 @@ class Joueur():
     def piocher(self,carte):
         self.Cards.append(carte)
 
-    def passerTour(self):
-        c=input("quelle carte pour passer le tour?:")
-
-        return self.Cards[c+1]
+    def passerTour(self, n):
+        self.Cards.remove(self.Cards[n])
 
 class StartMenu() :
     def __init__(self) :
@@ -281,8 +299,6 @@ class StartMenu() :
                 uni.wrefresh(info)
                 continue
             break
-                
-            
 
 class Jeu() :
     def __init__(self) :
@@ -295,7 +311,8 @@ class Jeu() :
         self.initDeck()
         self.giveCards()
         self.t = Table()
-        self.printInterface(self.listJoueurs[0])
+        interface = self.printInterface(self.listJoueurs[0])
+        self.gameLoop(interface)
     def getPlayers(self) :
         uni.clear()
         startx = int(0.2*self.scr.MaxX) 
@@ -376,13 +393,22 @@ class Jeu() :
         startWidth = self.scr.MaxX
         interface = uni.newwin(startHeight, startWidth, starty, startx)
         uni.box(interface, 0, 0)
-        uni.mvwaddstr(interface, starty+1, startx+int(self.scr.MaxX*0.4), "Tour du joueur " + str(j.id) + " : " + str(j.name))
-
+        self.refreshInterface(interface, j)
+        return interface
+    def refreshInterface(self, interface, j : Joueur) :
+        uni.clear()
+        startx = 0
+        starty = 0
+        uni.box(interface, 0, 0)
+        uni.mvwaddstr(interface, starty+1, startx+int(self.scr.MaxX*0.4), f"Tour du joueur {j.id} : {j.name} , {j.Role}" )
+        uni.wclrtoeol(interface)
+        uni.mvwaddstr(interface, starty+2, startx+int(self.scr.MaxX*0.4), f"Pioche : {len(self.Deck)}")
+        uni.wclrtoeol(interface)
+        self.printTable(interface)
         self.printJoueurs(interface)
         self.printCards(interface, j)
-        self.printTable(interface)
         uni.wrefresh(interface)
-        uni.wgetch(interface)
+        
     
     def printTable(self, interface) :
         startx = int(0.3*self.scr.MaxX)
@@ -390,29 +416,45 @@ class Jeu() :
         #bouger le curseur à la position de départ
         uni.mvwaddch(interface,starty, startx, " ")
         q = 0
-        for line in self.t.Mat :
+        for j, line in enumerate(self.t.Mat) :
             for i, card in enumerate(line) :
+                if j == 0 and card.posee :
+                    self.t.addLine("up")
+                if j == self.t.dimY-1 and card.posee :
+                    self.t.addLine("down")
+                if i == 0 and card.posee :
+                    self.t.addCollumn("left")
+                if i == self.t.dimX-1 and card.posee :
+                    self.t.addCollumn("right")
+                if isinstance(card, Arrivee) :
+                    if card.State != "Hidden" :
+                        card.reveal()
                 startx = int(0.3*self.scr.MaxX)+i*6
                 for y in range(3) :
                     for x in range(3) :
                         if card.Mat[y][x] == 1:
                             uni.mvwaddstr(interface, starty+y, startx+x*2, u"\u2588"*2 )
+                            uni.wclrtoeol(interface)
 
-                        if y == x == 1  and not card.posee:
+                        if y == x == 1  and not card.posee and not isinstance(card, Arrivee):
                             uni.mvwaddstr(interface, starty+y, startx+x*2, f"{q}")
+                            uni.wclrtoeol(interface)
                             #print(q,' ', sep='', end='')
                             continue
                             
                         if card.Mat[y][x] == 2:
                             uni.mvwaddstr(interface, starty+y, startx+x*2, "D")
+                            uni.wclrtoeol(interface)
                             continue
         
                         if card.Mat[y][x] == 3:
                             uni.mvwaddstr(interface, starty+y, startx+x*2, "G")
+                            uni.wclrtoeol(interface)
                             continue
         
                         if card.Mat[y][x] == 4:
                             uni.mvwaddstr(interface, starty+y, startx+x*2, "C")
+                            uni.wclrtoeol(interface)
                             continue
                 q +=1
             starty += 3
@@ -421,23 +463,32 @@ class Jeu() :
         starty = int(0.8*self.scr.MaxY)
         uni.mvwaddch(interface,starty, startx, " ")
         for i, card in enumerate(j.Cards) :
-            startx = int(0.35*self.scr.MaxX)+i*8
+            startx = int(0.35*self.scr.MaxX)+i*13
             for y in range(3) :
                 for x in range(3) :
                     if isinstance(card, Action) :
                         if y == 0 and x == 1 :
                             uni.mvwaddstr(interface, starty+y, startx+x*2, "A")
+                            uni.wclrtoeol(interface)
                             continue
                         if y == 1 :
                             if x == 1 :
                                 uni.mvwaddstr(interface, starty+y, startx+x*2, card.Code)
+                                uni.wclrtoeol(interface)
                                 break
                         if y ==2 and x == 1 :
                             uni.mvwaddstr(interface, starty+y, startx+x*2, card.Type)
+                            uni.wclrtoeol(interface)
                             continue
                     if card.Mat[y][x] == 1:
                         uni.mvwaddstr(interface, starty+y, startx+x*2, u"\u2588"*2 )
+                        uni.wclrtoeol(interface)
+                    if card.Mat[y][x] == 0:
+                        uni.mvwaddstr(interface, starty+y, startx+x*2, "  " )
+                        uni.wclrtoeol(interface)
+                        
             uni.mvwaddstr(interface, starty+4,startx+2, f"({i})")
+            uni.wclrtoeol(interface)
     def printJoueurs(self, interface) :
         for i, j in enumerate(self.listJoueurs) :
             starty = int(0.1*self.scr.MaxY)+5*int(i/2)
@@ -454,6 +505,189 @@ class Jeu() :
             uni.mvwaddstr(interface, starty+3, startx+11, f"chariot : {c}")
             
             
-        pass
+    def gameLoop(self, interface) :
+        i = 0
+        lostFlag = 0
+        while True :
+            if i >= self.nombreJoueurs :
+                i = 0
+            j = self.listJoueurs[i]
+            if len(j.Cards) == 0 and len(self.Deck) == 0 :
+                uni.mvwaddstr(interface, starty, startx, "Pas de cartes restantes, veuillez appuyer sur une touche pour passer le tour")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.wgetch(interface)
+                lostFlag += 1
+                if lostFlag == self.nombreJoueurs:
+                    return False
+            
+            startx = int(0.35*self.scr.MaxX)
+            starty = int(0.9*self.scr.MaxY)
+            uni.mvwaddstr(interface, starty, startx, "Quelle carte à jouer ? 'P' pour passer  ")
+            uni.wclrtoeol(interface)
+            self.refreshInterface(interface, j)
+            uni.curs_set(1)
+            uni.echo()
+            s = uni.mvwgetstr(interface, starty, startx+43)
+            uni.wclrtoeol(interface)
+            uni.noecho()
+            uni.curs_set(0)
+            if s == "P" :
+                uni.mvwaddstr(interface, starty, startx, "Quelle carte céder pour passer le tour ? ")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.curs_set(1)
+                uni.echo()
+                s = uni.mvwgetstr(interface, starty, startx+43)
+                uni.wclrtoeol(interface)
+                uni.noecho()
+                uni.curs_set(0)
+                try :
+                    n = int(s)
+                except :
+                    uni.mvwaddstr(interface, starty, startx, "Veuillez donner un nombre de carte valide")
+                    uni.wclrtoeol(interface)
+                    self.refreshInterface(interface, j)
+                    uni.wgetch(interface)
+                    continue
+                if n >= len(j.Cards) :
+                    uni.mvwaddstr(interface, starty, startx, "Veuillez donner un nombre de carte valide")
+                    uni.wclrtoeol(interface)
+                    self.refreshInterface(interface, j)
+                    uni.wgetch(interface)
+                    continue
+                    
+                j.passerTour(n)
+                if len(self.Deck) > 0 :
+                    c = choice(self.Deck)
+                    self.Deck.remove(c)
+                    j.piocher(c)
+                i += 1
+                continue
+            try :
+                n = int(s)
+            except :
+                uni.mvwaddstr(interface, starty, startx, "Veuillez donner un nombre de carte valide")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.wgetch(interface)
+                continue
+            if n >= len(j.Cards) :
+                uni.mvwaddstr(interface, starty, startx, "Veuillez donner un nombre de carte valide")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.wgetch(interface)
+                continue
+            c = j.Cards[n]
+            if isinstance(c, Action) :
+                if c.Code == "MAP" or c.Code == "EBOU" :
+                    pass
+                uni.mvwaddstr(interface, starty, startx, "Veuillez donner le nombre du joueur sur lequel vous voulez utiliser la carte Action : ")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.curs_set(1)
+                uni.echo()
+                s = uni.mvwgetstr(interface, starty, startx+88)
+                uni.wclrtoeol(interface)
+                uni.noecho()
+                uni.curs_set(0)
+                
+                try :
+                    n = int(s)
+                except :
+                    uni.mvwaddstr(interface, starty, startx, "Veuillez donner un nombre de joueur valide")
+                    uni.wclrtoeol(interface)
+                    self.refreshInterface(interface, j)
+                    uni.wgetch(interface)
+                    continue
+                if n >= self.nombreJoueurs :
+                    uni.mvwaddstr(interface, starty, startx, f"Veuillez donner un nombre de joueur entre 0 et {self.nombreJoueurs-1}")
+                    uni.wclrtoeol(interface)
+                    self.refreshInterface(interface, j)
+                    uni.wgetch(interface)
+                    continue
+                jtemp = self.listJoueurs[n]
+                jtemp.Action(c)
+                j.Cards.remove(c)
+                if len(self.Deck) > 0 :
+                    c = choice(self.Deck)
+                    self.Deck.remove(c)
+                    j.piocher(c)
+                i += 1
+                continue
+            uni.mvwaddstr(interface, starty, startx, "Veuillez donner l'emplacement de la carte")
+            uni.wclrtoeol(interface)
+            self.refreshInterface(interface, j)
+            uni.curs_set(1)
+            uni.echo()
+            s = uni.mvwgetstr(interface, starty, startx+43)
+            uni.wclrtoeol(interface)
+            uni.noecho()
+            uni.curs_set(0)
+            try :
+                pos = int(s)
+            except :
+                uni.mvwaddstr(interface, starty, startx, "Veuillez donner un emplacement valide")
+                uni.wclrtoeol(interface)
+                self.refreshInterface(interface, j)
+                uni.wgetch(interface)
+                continue
+            res = self.t.verifChemin(c, pos)
+            if res == True :
+                self.t.putCard(c, pos)
+                j.Cards.remove(c)
+                if len(self.Deck) > 0 :
+                    c = choice(self.Deck)
+                    self.Deck.remove(c)
+                    j.piocher(c)
+                i += 1
+                res = self.checkWin()
+                if res == True :
+                    break
+                continue
+            
+            uni.mvwaddstr(interface, starty, startx, "Veuillez donner un emplacement valide")
+            uni.wclrtoeol(interface)
+            self.refreshInterface(interface, j)
+            uni.wgetch(interface)
+            continue
+            
+            
+    def checkWin(self) :
+        loc = []
+        mat = self.t.Mat
+        for y in range(self.t.dimY) :
+            for x in range(self.t.dimX) :
+                if isinstance(mat[y][x], Arrivee) :
+                    loc.append((x,y))
+        print(loc)
+        for x,y in loc :
+            if y-1 < self.t.dimX :
+                if mat[y-1][x].posee :
+                    if mat[y-1][x].Mat[2][1] == 0 :
+                        mat[y][x].reveal()
+            if y+1 < self.t.dimX :
+                if mat[y+1][x].posee :
+                    if mat[y+1][x].Mat[0][1] == 0 :
+                        mat[y][x].reveal()
+            if x-1 < self.t.dimX :
+                if mat[y][x-1].posee :
+                    if mat[y][x-1].Mat[1][2] == 0 :
+                        mat[y][x].reveal()
+            if x+1 < self.t.dimX :
+                if mat[y][x+1].posee :
+                    if mat[y][x+1].Mat[1][0] == 0 :
+                        mat[y][x].reveal()
+            if mat[y][x].Code == "G" and mat[y][x].State != "Hidden" :
+                return True
+        return False
+        
+                
+            
+                
+                
+            
+                
+            
 
 j = Jeu()
