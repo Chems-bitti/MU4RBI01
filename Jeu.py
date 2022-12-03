@@ -376,25 +376,25 @@ class Jeu() :
         startWidth = self.scr.MaxX
         interface = uni.newwin(startHeight, startWidth, starty, startx)
         uni.box(interface, 0, 0)
-        uni.mvwaddstr(interface, starty+1, startx+20, "Tour du joueur " + str(j.id) + " : " + str(j.name))
-        uni.wrefresh(interface)
+        uni.mvwaddstr(interface, starty+1, startx+int(self.scr.MaxX*0.4), "Tour du joueur " + str(j.id) + " : " + str(j.name))
+
+        self.printJoueurs(interface)
+        self.printCards(interface, j)
         self.printTable(interface)
+        uni.wrefresh(interface)
         uni.wgetch(interface)
-        pass
     
     def printTable(self, interface) :
-        startx = 3
-        starty = 3
+        startx = int(0.3*self.scr.MaxX)
+        starty = int(0.1*self.scr.MaxY)
+        #bouger le curseur à la position de départ
         uni.mvwaddch(interface,starty, startx, " ")
         q = 0
         for line in self.t.Mat :
             for i, card in enumerate(line) :
-                startx = 3 +i*6
+                startx = int(0.3*self.scr.MaxX)+i*6
                 for y in range(3) :
                     for x in range(3) :
-                        if card.Mat[y][x] == 0:
-                            uni.mvwaddstr(interface, starty+y, startx+x*2, "  ")
-                            continue
                         if card.Mat[y][x] == 1:
                             uni.mvwaddstr(interface, starty+y, startx+x*2, u"\u2588"*2 )
 
@@ -416,4 +416,44 @@ class Jeu() :
                             continue
                 q +=1
             starty += 3
+    def printCards(self,interface, j: Joueur) :
+        startx = int(0.35*self.scr.MaxX)
+        starty = int(0.8*self.scr.MaxY)
+        uni.mvwaddch(interface,starty, startx, " ")
+        for i, card in enumerate(j.Cards) :
+            startx = int(0.35*self.scr.MaxX)+i*8
+            for y in range(3) :
+                for x in range(3) :
+                    if isinstance(card, Action) :
+                        if y == 0 and x == 1 :
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, "A")
+                            continue
+                        if y == 1 :
+                            if x == 1 :
+                                uni.mvwaddstr(interface, starty+y, startx+x*2, card.Code)
+                                break
+                        if y ==2 and x == 1 :
+                            uni.mvwaddstr(interface, starty+y, startx+x*2, card.Type)
+                            continue
+                    if card.Mat[y][x] == 1:
+                        uni.mvwaddstr(interface, starty+y, startx+x*2, u"\u2588"*2 )
+            uni.mvwaddstr(interface, starty+4,startx+2, f"({i})")
+    def printJoueurs(self, interface) :
+        for i, j in enumerate(self.listJoueurs) :
+            starty = int(0.1*self.scr.MaxY)+5*int(i/2)
+            startx = 3
+            if i%2 != 0 :
+                startx = self.scr.MaxX-30
+            p = j.state["pioche"]
+            l = j.state["lampe"]
+            c = j.state["chariot"]
+            uni.mvwaddstr(interface, starty, startx+11, f"Cards : {len(j.Cards)}")
+            uni.mvwaddstr(interface, starty+1, startx+1, f"J{i}")
+            uni.mvwaddstr(interface, starty+1, startx+11, f"pioche : {p}")
+            uni.mvwaddstr(interface, starty+2, startx+11, f"lampe : {l}")
+            uni.mvwaddstr(interface, starty+3, startx+11, f"chariot : {c}")
+            
+            
+        pass
+
 j = Jeu()
