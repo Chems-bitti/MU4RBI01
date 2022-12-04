@@ -2,6 +2,7 @@ class Carte() :
     def __init__(self) :
         self.posee = False
         self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
+        self.Type = ""
 
 class Depart(Carte) :
     def __init__(self) :
@@ -30,7 +31,13 @@ class Arrivee(Carte) :
             self.Mat = [[1,0,1],[0,3,0],[1,0,1]]
         if self.Type == "C" :
             self.Mat = [[1,0,1],[0,4,0],[1,0,1]]
+        self.State = "Shown"
         self.posee = True
+    def hide(self) :
+        self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
+        self.posee = False
+        self.State = "Hidden"
+        
     
         
 class Chemin(Carte) :

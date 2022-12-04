@@ -41,7 +41,17 @@ class Table() :
             else : 
                 line.insert(0,Carte())
         self.dimX += 1
-    """ Fonction d'affichage de la table"""
+    def getArrivee(self) :
+        loc = []
+        mat = self.Mat
+        for y in range(self.dimY) :
+            for x in range(self.dimX) :
+                if isinstance(mat[y][x], Arrivee) :
+                    loc.append((x,y))
+        return loc
+    """ Fonction d'affichage de la table
+        ça sert à rien comme j'utilise ncurses
+    """
     def affTable(self) :
         
         q = 0
@@ -76,51 +86,53 @@ class Table() :
     def checkPosValid(self, c, x, y) :
         # Vérifier si c'est à coté d'une carte posée
         if x > self.dimY or x < 0 :
-            print("x invalide ?", x, self.dimY)
             return False
         if y > self.dimX or y < 0 :
-            print("y invalid ?", y, self.dimX)
             return False
         posValid = []
         if self.Mat[x][y].posee :
-            print(f"mat",x, y)
             return False
         if x-1 > 0 :
             if not self.Mat[x-1][y].posee :
-                print(f"mat",x-1, y)
                 posValid.append(False)
+        else :
+            posValid.append(False)
         if x+1 < self.dimY :
             if not self.Mat[x+1][y].posee :
-                print(f"mat",x+1, y)
                 posValid.append(False)
+        else :
+            posValid.append(False)
         if y-1 > 0 :
     
             if not self.Mat[x][y-1].posee :
-                print(f"mat",x, y-1)
                 posValid.append(False)
+        else :
+            posValid.append(False)
 
         if y+1 < self.dimX :
             if not self.Mat[x][y+1].posee :
-                print(f"mat",x, y+1)
                 posValid.append(False)
+        else :
+            posValid.append(False)
         if len(posValid) == 4 :
             return False
         posValid = []
         # Vérifier le chemin par rapports aux cartes posées 
-        if (self.Mat[x-1][y].Mat[2][1] != c.Mat[0][1]) and self.Mat[x-1][y].posee :
-            print("test")
-            posValid.append(False)
+        if x-1 > 0 :
+            if (self.Mat[x-1][y].Mat[2][1] != c.Mat[0][1]) and self.Mat[x-1][y].posee :
+                posValid.append(False)
         
-        if (self.Mat[x+1][y].Mat[0][1] != c.Mat[2][1]) and self.Mat[x+1][y].posee :
-            print("test1")
-            posValid.append(False)
+        if x+1 < self.dimY :
+            if (self.Mat[x+1][y].Mat[0][1] != c.Mat[2][1]) and self.Mat[x+1][y].posee :
+                posValid.append(False)
     
-        if (self.Mat[x][y-1].Mat[1][2] != c.Mat[1][0]) and self.Mat[x][y-1].posee :
-            posValid.append(False)
+        if y-1 > 0 :
+            if (self.Mat[x][y-1].Mat[1][2] != c.Mat[1][0]) and self.Mat[x][y-1].posee :
+                posValid.append(False)
 
-        if (self.Mat[x][y+1].Mat[1][0] != c.Mat[1][2]) and self.Mat[x][y+1].posee :
-            print("test3")
-            posValid.append(False)
+        if y+1 < self.dimX :
+            if (self.Mat[x][y+1].Mat[1][0] != c.Mat[1][2]) and self.Mat[x][y+1].posee :
+                posValid.append(False)
         if False in posValid :
             return False
         return True
@@ -131,7 +143,6 @@ class Table() :
         res = self.checkPosValid(c, x, y)
         return res
     def putCard(self, c, pos) :
-        print("Valid")
         c.posee = True
         y = int(pos/self.dimX)
         x = pos%self.dimX
@@ -174,6 +185,14 @@ class Joueur():
             else :
                 self.state["chariot"]-=1
 
+    def checkState(self) :
+        if self.state["pioche"] < 0 :
+            return False
+        if self.state["lampe"] < 0 :
+            return False
+        if self.state["chariot"] < 0 : 
+            return False
+        return True
 
     def piocher(self,carte):
         self.Cards.append(carte)
@@ -305,14 +324,80 @@ class Jeu() :
         self.scr = StartMenu()
         self.nombreJoueurs = self.scr.nombreJoeurs #juste pour ne pas écrire scr à chaque fois
         self.listJoueurs = []
+        self.nombreChercheur = 0
         self.Deck = []
+        self.Gold = []
+        self.nbManche = 0
         self.getPlayers()
         self.giveRoles()
+        self.getGold()
         self.initDeck()
         self.giveCards()
         self.t = Table()
         interface = self.printInterface(self.listJoueurs[0])
-        self.gameLoop(interface)
+        while self.nbManche < 3 :
+            minerWin, j = self.gameLoop(interface)
+            self.printWinner(interface, minerWin, j)
+            self.nbManche += 1
+            
+            if not minerWin :
+                if self.nombreJoueurs < 4 :
+                    gold =  4
+                elif self.nombreJoueurs < 10 :
+                    gold = 3
+                else :
+                    gold = 2
+                    
+                for j in self.listJoueurs :
+                    if j.Role == "Saboteur" :
+                        j.Score += gold
+                continue
+            orPioche = []
+            print(self.Gold)
+            for i  in range(self.nombreChercheur) :
+                c = choice(self.Gold)
+                orPioche.append(c)
+                self.Gold.remove(c)
+            startx = int(0.35*self.scr.MaxX)
+            starty = int(0.7*self.scr.MaxY)
+            i = j.id
+            p = 0
+            while p < self.nombreChercheur :
+                if i == self.nombreJoueurs :
+                    i = 0
+                j = self.listJoueurs[i]
+                if j.Role == "Mineur" :
+                    p += 1
+                    uni.clear()
+                    self.printGold(interface, orPioche)
+                    uni.mvwaddstr(interface, starty, startx, f"Joueur {j.id}, choisissez une carte : ")
+                    uni.wclrtoeol(interface)
+                    uni.wrefresh(interface)
+                    uni.curs_set(1)
+                    uni.echo()
+                    s = uni.mvwgetstr(interface, starty, startx+40)
+                    uni.wclrtoeol(interface)
+                    uni.noecho()
+                    uni.curs_set(0)
+                    j.Score += orPioche[int(s)]
+                    orPioche.remove(orPioche[int[s]])
+            
+            
+
+    def printLeaderboard(self) :
+        startx = int(0.2*self.scr.MaxX)
+        starty = int(0.2*self.scr.MaxY)
+        startHeight = int(0.3*self.scr.MaxY)
+        startWidth = int(0.3*self.scr.MaxX)
+        leaderBoard = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(leaderBoard, 0, 0)
+        i = 0
+        sortedJoueurs = sorted(self.listJoueurs, key=lambda j : j.Score)
+        starty = starty+startHeight-3
+        for i, j in enumerate(sortedJoueurs) :
+            starty -= i*2 
+            uni.mvwaddstr(leaderBoard, starty, startx, f"Joueur {j.id} : {j.name}   {j.Score}G")
+        uni.wrefresh(leaderBoard)
     def getPlayers(self) :
         uni.clear()
         startx = int(0.2*self.scr.MaxX) 
@@ -340,12 +425,16 @@ class Jeu() :
         # copie locale du nombre de joueur car j'ai la flemme d'écrire self à chaque fois
         n = self.nombreJoueurs
         N = 1
+        self.nombreChercheur  = self.nombreJoueurs - N
         if 5 <= n <= 6 :
             N = 2
+            self.nombreChercheur  = self.nombreJoueurs - N
         if 7 <=n <=9  :
             N = 3
+            self.nombreChercheur  = self.nombreJoueurs - N
         if n == 10 :
             N = 4
+            self.nombreChercheur  = self.nombreJoueurs - N
         for i in range(N) :
             j = choice(listJoueurs)
             j.Role = "Saboteur"
@@ -353,6 +442,36 @@ class Jeu() :
         for j in listJoueurs :
             j.Role = "Mineur"
         
+    def getGold(self) :
+        with open("gold.txt") as f :
+            lines = f.readlines()
+            for line in lines :
+                s = line.split()
+                #sert à rien de vérifier mais bon au cas
+                #où l'utilisateur change le fichier
+                if len(s) < 2 :
+                    continue
+                for i in range(int(s[0])) :
+                    self.Gold.append(Or(int(s[1])))
+                
+    
+    def printGold(self,interface, Gold) :
+        startx = int(0.35*self.scr.MaxX)
+        starty = int(0.5*self.scr.MaxY)
+        uni.mvwaddch(interface,starty, startx, " ")
+        for i, card in enumerate(self.Gold) :
+            startx = int(0.35*self.scr.MaxX)+i*13
+            for y in range(3) :
+                for x in range(3) :
+                    if y == 0 or y == 2 :
+                        uni.mvwaddstr(interface, starty+y, startx+2*x, u"\u2588"*2)
+                        uni.wclrteol(interface)
+                    if y == 1 :
+                        uni.mvwaddstr(interface, starty+y, startx, f"  {card.Value}G")
+                        uni.wclrteol(interface)
+                        
+            uni.mvwaddstr(interface, starty+4,startx+2, f"({i})")
+            uni.wclrtoeol(interface)
     def initDeck(self) :
         with open("chemin.txt") as f :
             lines = f.readlines()
@@ -509,6 +628,10 @@ class Jeu() :
         i = 0
         lostFlag = 0
         while True :
+            self.refreshInterface(interface, j)
+            win = self.checkWin()
+            if win :
+                return win, j
             if i >= self.nombreJoueurs :
                 i = 0
             j = self.listJoueurs[i]
@@ -519,7 +642,7 @@ class Jeu() :
                 uni.wgetch(interface)
                 lostFlag += 1
                 if lostFlag == self.nombreJoueurs:
-                    return False
+                    return False, j
             
             startx = int(0.35*self.scr.MaxX)
             starty = int(0.9*self.scr.MaxY)
@@ -580,8 +703,76 @@ class Jeu() :
                 continue
             c = j.Cards[n]
             if isinstance(c, Action) :
-                if c.Code == "MAP" or c.Code == "EBOU" :
-                    pass
+                if c.Code == "MAP" :
+                    uni.mvwaddstr(interface, starty, startx, "Choisir la carte arrivée que vous voulez voir : UP, MID, ou DOWN")
+                    uni.wclrtoeol(interface)
+                    uni.curs_set(1)
+                    uni.echo()
+                    s = uni.mvwgetstr(interface, starty, startx+88)
+                    uni.wclrtoeol(interface)
+                    uni.noecho()
+                    uni.curs_set(0)
+                    loc = self.t.getArrivee()
+                    mat = self.t.Mat
+                    x, y = loc[0]
+                    if s == "MID" :
+                        x, y = loc[1]
+                    if s == "DOWN" :
+                        x, y = loc[2]
+                    mat[y][x].reveal()
+                    self.refreshInterface(interface, j)
+                    uni.wgetch(interface)
+                    mat[y][x].hide()
+                    j.Cards.remove(c)
+                    if len(self.Deck) > 0 :
+                        c = choice(self.Deck)
+                        self.Deck.remove(c)
+                        j.piocher(c)
+                    i += 1
+                    continue
+                    
+                if c.Code == "EBOU" :
+                    uni.mvwaddstr(interface, starty, startx, "Choisir la carte que vous voulez enlever :")
+                    uni.wclrtoeol(interface)
+                    uni.curs_set(1)
+                    uni.echo()
+                    s = uni.mvwgetstr(interface, starty, startx+48)
+                    uni.wclrtoeol(interface)
+                    uni.noecho()
+                    uni.curs_set(0)
+                    try :
+                        pos= int(s)
+                    except :
+                        uni.mvwaddstr(interface, starty, startx, "Veuillez donner une position valide")
+                        uni.wclrtoeol(interface)
+                        self.refreshInterface(interface, j)
+                        uni.wgetch(interface)
+                        continue
+
+                    y = int((pos/self.t.dimX))
+                    x = pos%self.t.dimX
+                    if not self.t.Mat[y][x].posee :
+                        uni.mvwaddstr(interface, starty, startx, "Veuillez donner la position d'une carte posee")
+                        uni.wclrtoeol(interface)
+                        self.refreshInterface(interface, j)
+                        uni.wgetch(interface)
+                        continue
+                    if isinstance(self.t.Mat[y][x], Arrivee) or isinstance(self.t.Mat[y][x], Depart) :
+                        uni.mvwaddstr(interface, starty, startx, "Les cartes de depart et arrivee ne peuvent pas être retirees")
+                        uni.wclrtoeol(interface)
+                        self.refreshInterface(interface, j)
+                        uni.wgetch(interface)
+                        continue
+                        
+                    self.t.Mat[y][x] = Carte()
+                    j.Cards.remove(c)
+                    if len(self.Deck) > 0 :
+                        c = choice(self.Deck)
+                        self.Deck.remove(c)
+                        j.piocher(c)
+                    i += 1
+                    continue
+
                 uni.mvwaddstr(interface, starty, startx, "Veuillez donner le nombre du joueur sur lequel vous voulez utiliser la carte Action : ")
                 uni.wclrtoeol(interface)
                 self.refreshInterface(interface, j)
@@ -632,8 +823,9 @@ class Jeu() :
                 self.refreshInterface(interface, j)
                 uni.wgetch(interface)
                 continue
-            res = self.t.verifChemin(c, pos)
-            if res == True :
+            validPos = self.t.verifChemin(c, pos)
+            canPlay = j.checkState()
+            if validPos and canPlay :
                 self.t.putCard(c, pos)
                 j.Cards.remove(c)
                 if len(self.Deck) > 0 :
@@ -641,12 +833,10 @@ class Jeu() :
                     self.Deck.remove(c)
                     j.piocher(c)
                 i += 1
-                res = self.checkWin()
-                if res == True :
-                    break
-                continue
-            
-            uni.mvwaddstr(interface, starty, startx, "Veuillez donner un emplacement valide")
+            if not validPos :
+                uni.mvwaddstr(interface, starty, startx, "Veuillez donner un emplacement valide")
+            if not canPlay :
+                uni.mvwaddstr(interface, starty, startx, "Vous ne pouvez pas jouer, un outil est cassé")
             uni.wclrtoeol(interface)
             self.refreshInterface(interface, j)
             uni.wgetch(interface)
@@ -654,40 +844,44 @@ class Jeu() :
             
             
     def checkWin(self) :
-        loc = []
+        loc = self.t.getArrivee()
         mat = self.t.Mat
-        for y in range(self.t.dimY) :
-            for x in range(self.t.dimX) :
-                if isinstance(mat[y][x], Arrivee) :
-                    loc.append((x,y))
-        print(loc)
         for x,y in loc :
-            if y-1 < self.t.dimX :
-                if mat[y-1][x].posee :
+            if y-1 > 0 :
+                if mat[y-1][x].posee and mat[y-1][x].Type == "+" :
                     if mat[y-1][x].Mat[2][1] == 0 :
                         mat[y][x].reveal()
             if y+1 < self.t.dimX :
-                if mat[y+1][x].posee :
+                if mat[y+1][x].posee and mat[y+1][x].Type == "+":
                     if mat[y+1][x].Mat[0][1] == 0 :
                         mat[y][x].reveal()
-            if x-1 < self.t.dimX :
-                if mat[y][x-1].posee :
-                    if mat[y][x-1].Mat[1][2] == 0 :
+            if x-1 > 0 :
+                if mat[y][x-1].posee and mat[y][x-1].Type == "+":
+                    if mat[y][x-1].Mat[1][0] == 0 :
                         mat[y][x].reveal()
             if x+1 < self.t.dimX :
-                if mat[y][x+1].posee :
-                    if mat[y][x+1].Mat[1][0] == 0 :
+               
+                if mat[y][x+1].posee and mat[y][x+1].Type == "+":
+                    if mat[y][x+1].Mat[1][2] == 0 :
                         mat[y][x].reveal()
-            if mat[y][x].Code == "G" and mat[y][x].State != "Hidden" :
+            if mat[y][x].Type == "G" and mat[y][x].State != "Hidden" :
                 return True
         return False
         
-                
-            
-                
-                
-            
-                
+    def printWinner(self, interface, result, j) :
+        uni.clear()
+        startx = int(0.4*self.scr.MaxX)
+        starty = int(0.5*self.scr.MaxY)
+        if result :
+            uni.mvwaddstr(interface, starty, startx, "Les mineurs ont gagné !")
+            uni.mvwaddstr(interface, starty+2, startx, f"Joueur qui a posé la carte gagnante : Joueur{j.id} {j.name}")
+            uni.wrefresh(interface)
+            uni.wgetch(interface)
+            return
+        uni.mvwaddstr(interface, starty, startx, "Les saboteurs ont gagné !")
+        uni.wrefresh(interface)
+        uni.wgetch(interface)
+        return
             
 
 j = Jeu()
