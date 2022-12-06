@@ -61,7 +61,7 @@ class Table() :
                     if y == 0 and card.posee :
                         self.addLine("up")
                     if y == self.dimY-1 and card.posee :
-                        self.t.addLine("down")
+                        self.addLine("down")
                     if x == 0 and card.posee :
                         self.addCollumn("left")
                     if x == self.dimX-1 and card.posee :
