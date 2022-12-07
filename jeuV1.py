@@ -58,6 +58,7 @@ class Jeu() :
                         continue
                     j.Score += orPioche[n].Value
                     orPioche.remove(orPioche[n])
+                i +=1
         self.listJoueurs.sort(key=lambda x: j.Score, reverse=True)
         system("cls")
         for i, j in enumerate(self.listJoueurs) :
@@ -72,7 +73,7 @@ class Jeu() :
                     if y == 0 or y == 2 :
                         print(u"\u2588"*2, end="")
                     if y == 1 :
-                        print(f"  {card.Value}G  ")
+                        print(f"  {card.Value}G  ", end="")
                         break
                 print(" "*5, end="")
             print(" ")
