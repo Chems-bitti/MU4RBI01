@@ -70,7 +70,7 @@ class Jeu() :
             for i, card in enumerate(orPioche) :
                 for x in range(3) :
                     if y == 0 or y == 2 :
-                        print(u"\U2588"*2, end="")
+                        print(u"\u2588"*2, end="")
                     if y == 1 :
                         print(f"  {card.Value}G  ")
                         break
