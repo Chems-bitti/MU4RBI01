@@ -58,6 +58,7 @@ class Table() :
         for y, line in enumerate(self.Mat) :
             for j in range(3) :
                 for x, card in enumerate(line) :
+                
                     if y == 0 and card.posee :
                         self.addLine("up")
                     if y == self.dimY-1 and card.posee :
@@ -80,14 +81,19 @@ class Table() :
                                 print(u" C", end='')
                             if i == j == 1  and not card.posee and not isinstance(card, Arrivee):
                                 if q < self.dimX :
-                                    print(q,' ', sep='', end='')
+                                    print(q, end=' ')
                                     continue
                                         
-                                print(q, sep='', end='')
+                                print(q, end='')
                                 continue
                             if card.Mat[j][i] == 1 :
+                                if q >= 100 and i == 2 and j == 1 :
+                                    print(u"\u2588", end='')
+                                    continue
                                 print(u"\u2588"*2, end='')
-                            continue
+                                continue
+                        if q >= 100 and i > 1 and j == 1 :
+                            print(' ', end='')
                         print(' '*2, end='')
                     if j == 1 :
                         q += 1

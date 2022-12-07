@@ -10,17 +10,73 @@ class Jeu() :
         self.Gold = []
         self.nbManche = 0
         self.getPlayers()
-        self.giveRoles()
-        self.getGold()
-        self.initDeck()
-        self.giveCards()
-        self.t = Table()
-        self.printInterface()
-        result, j = self.gameloop()
-        self.refreshInterface(j)
-        self.printWinner(result,j)
+        while self.nbManche < 3 :
+            self.giveRoles()
+            self.getGold()
+            self.initDeck()
+            self.giveCards()
+            self.t = Table()
+            self.printInterface()
+            minerWin, j = self.gameloop()
+            self.nbManche +=1
+            self.refreshInterface(j)
+            self.printWinner(minerWin,j)
+            if not minerWin :
+                if self.nombreJoueurs < 4 :
+                    gold =  4
+                elif self.nombreJoueurs < 10 :
+                    gold = 3
+                else :
+                    gold = 2
+                    
+                for j in self.listJoueurs :
+                    if j.Role == "Saboteur" :
+                        j.Score += gold
+                continue
+            orPioche = []
+            for i  in range(self.nombreChercheur) :
+                c = choice(self.Gold)
+                orPioche.append(c)
+                self.Gold.remove(c)
+            i = j.id
+            p = 0
+            while p < self.nombreChercheur :
+                if i == self.nombreJoueurs :
+                    i = 0
+                j = self.listJoueurs[i]
+                if j.Role == "Mineur" :
+                    p += 1
+                    self.printGold(orPioche)
+                    s = input(f"Joueur {j.id}, choisissez une carte : ")
+                    try :
+                        n = int(s) 
+                    except :
+                        print("Veuillez donner un nombre valide")
+                        continue
+                    if n > len(orPioche)-1 :
+                        print("Veuillez donner un nombre de carte valide")
+                        continue
+                    j.Score += orPioche[n].Value
+                    orPioche.remove(orPioche[n])
+        self.listJoueurs.sort(key=lambda x: j.Score, reverse=True)
+        system("cls")
+        for i, j in enumerate(self.listJoueurs) :
+            print(f"{i}. Joueur {j.id}, {j.name}")
+            
 
         
+    def printGold(self, orPioche) :
+        for y in range(3) :
+            for i, card in enumerate(orPioche) :
+                for x in range(3) :
+                    if y == 0 or y == 2 :
+                        print(u"\U2588"*2, end="")
+                    if y == 1 :
+                        print(f"  {card.Value}G  ")
+                        break
+                print(" "*5, end="")
+            print(" ")
+                        
     def getPlayers(self) :
         print("Welcome to SabOOteurs : where otters try to find gold")
         n = 0
@@ -297,6 +353,9 @@ class Jeu() :
             if validPos and canPlay :
                 self.t.putCard(c, pos)
                 j.Cards.remove(c)
+
+                self.t.affTable()
+                #parce que sinon ça affiche un truc bizarre 
                 if len(self.Deck) > 0 :
                     c = choice(self.Deck)
                     self.Deck.remove(c)
@@ -326,12 +385,12 @@ class Jeu() :
                         mat[y][x].reveal()
             if x-1 > 0 :
                 if mat[y][x-1].posee and mat[y][x-1].Type == "+":
-                    if mat[y][x-1].Mat[1][0] == 0 :
+                    if mat[y][x-1].Mat[1][2] == 0 :
                         mat[y][x].reveal()
             if x+1 < self.t.dimX :
                
                 if mat[y][x+1].posee and mat[y][x+1].Type == "+":
-                    if mat[y][x+1].Mat[1][2] == 0 :
+                    if mat[y][x+1].Mat[1][0] == 0 :
                         mat[y][x].reveal()
             if mat[y][x].Type == "G" and mat[y][x].State != "Hidden" :
                 return True
