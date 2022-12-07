@@ -10,9 +10,9 @@ class Jeu() :
         self.Gold = []
         self.nbManche = 0
         self.getPlayers()
+        self.getGold()
         while self.nbManche < 3 :
             self.giveRoles()
-            self.getGold()
             self.initDeck()
             self.giveCards()
             self.t = Table()
@@ -59,13 +59,18 @@ class Jeu() :
                     j.Score += orPioche[n].Value
                     orPioche.remove(orPioche[n])
                 i +=1
-        self.listJoueurs.sort(key=lambda x: j.Score, reverse=True)
-        system("cls")
-        for i, j in enumerate(self.listJoueurs) :
-            print(f"{i}. Joueur {j.id}, {j.name}")
-            
+            self.Deck = []
+            for j in self.listJoueurs :
+                j.Cards = []
+        self.printLeaderboard()
 
-        
+    def printLeaderboard(self) :
+        self.listJoueurs.sort(key=lambda j: j.Score, reverse=True)
+        system("cls")
+        print("Résulats finaux :")
+        for i, j in enumerate(self.listJoueurs) :
+            print(f"{i+1}. Joueur {j.id}, {j.name}...........{j.Score}")
+         
     def printGold(self, orPioche) :
         for y in range(3) :
             for i, card in enumerate(orPioche) :
@@ -400,7 +405,7 @@ class Jeu() :
     def printWinner(self, result, j) :
         if result :
             print("Les mineurs ont gagné !")
-            print(f"Le joueur qui a posé la carte gagnate : Joueur {j.id} {j.name}")
+            print(f"Le joueur qui a posé la carte gagnate : Joueur {j.id} {j.name}, {j.Role}")
             input()
             return
         print("Les saboteurs ont gagné !")
