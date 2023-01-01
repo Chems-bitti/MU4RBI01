@@ -1,4 +1,5 @@
-class Carte() :
+from abc import ABC, abstractproperty
+class Carte(ABC) :
     def __init__(self) :
         self.posee = False
         self.Mat = [[1,1,1],[1,1,1],[1,1,1]]
