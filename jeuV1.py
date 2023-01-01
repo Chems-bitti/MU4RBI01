@@ -9,13 +9,14 @@ class Jeu() :
         self.Deck = []
         self.Gold = []
         self.nbManche = 0
+        self.t = Table()
         self.getPlayers()
         self.getGold()
+        self.printRules()
         while self.nbManche < 3 :
             self.giveRoles()
             self.initDeck()
             self.giveCards()
-            self.t = Table()
             self.printInterface()
             minerWin, j = self.gameloop()
             self.nbManche +=1
@@ -84,26 +85,39 @@ class Jeu() :
             print(" ")
                         
     def getPlayers(self) :
-        print("Welcome to SabOOteurs : where otters try to find gold")
+        print("Bienvenue a SabOOters, ou des loutres essaient de trouver de l'or")
         n = 0
         while True :
-            s = input("Please tell us how many players are playing : ")
+            s = input("Veuillez donner le nombre de joueurs : ")
             try :
                 n = int(s)
             except :
-                print("Please give us a valid number")
+                print("Veuillez donner un nombre.")
                 continue
             if n < 3 or n > 10 :
-                print("Please give a number between 3 and 10")
+                print("Veuillez donner un nombre entre 3 et 10. ")
                 continue
             break
         self.nombreJoueurs = n
         for i  in range(n) :
-            s = input(f"Give a name to Player n°{i} : ")
+            s = input(f"Nom du joueur n°{i} : ")
             j = Joueur(i)
             j.creerJoueur(s)
             self.listJoueurs.append(j)
             
+    def printRules(self) :
+        system("cls")
+        print("Dans ce jeu, il existe des loutres mineurs, et des loutres sabotteurs")
+        print("Le but du jeu pour les mineurs est d'arriver a la carte a face cachee qui contient l'or")
+        print("Le but des saboteurs est d'empêcher cela")
+        self.t.affTable()
+        print("Il existe trois type de cartes :")
+        print("     - les cartes Chemins : elles sont utilisees pour 'miner' vers les cartes d'arrivee, chaque carte contient un dessin qui designe le chemin qu'elle definit")
+        print("     - les cartes Action : elles sont utilisees pour appliquer des buff (ou des debuff) aux autres joueurs. Elles sont representees par un A (pour action), puis le type de buff (P pour pioche, L pour lampe, et C pour chariot), puis si c'est un buff (+) ou un debuff (-)")
+        print("     Aussi, les carte eboulement (EBOU), et MAP permettent de retirer une carte de la table, ou regarder une des cartes a face cachee")
+        print("     - les cartes OR : elles designent la quantite d'or que chaque joueur recois a chaque fin de manche. Le jeu est composee de trois manches")
+        print("Si vous avez fini de lire les regles, appuyer sur une touche")
+        input()
     def giveRoles(self) :
         #copie locale de la liste des joueurs car on en aura besoin
         listJoueurs = self.listJoueurs.copy()
@@ -222,6 +236,7 @@ class Jeu() :
     def refreshInterface(self, j) :
         system("cls")
         print(f"Tour du Joueur {j.id} : {j.name}, {j.Role}")
+        print(f"Nombre de cartes restantes : {len(self.Deck)}")
         self.t.affTable()
         self.printJoueurs()
         self.printCards(j)
