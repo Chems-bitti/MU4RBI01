@@ -1,5 +1,124 @@
 from interface import *
+import unicurses as uni
 
+class StartMenu() :
+    def __init__(self) :
+        self.stdscr = uni.initscr()
+        self.MaxY, self.MaxX = uni.getmaxyx(self.stdscr)
+        uni.clear()
+        uni.noecho()
+        uni.cbreak()
+        self.startHeight = int(0.5*self.MaxY)
+        self.startWidth = int(0.5*self.MaxX)
+        startx = int(0.25*self.MaxX) 
+        starty = int(0.25*self.MaxY)
+        self.Menu = uni.newwin(self.startHeight, self.startWidth, starty, startx)
+        uni.keypad(self.Menu, True)
+        self.startChoices = ["Start Game", "Rules", "Exit"]
+        self.highlight = 1
+        x = int(0.5*self.startWidth-10)
+        uni.mvaddstr(starty-1,startx, "*"*x+"Welcome to SabOOters"+"*"*x)
+        uni.refresh()
+        self.printStart()
+        uni.curs_set(0)
+        self.inputLoop()
+    def printStart(self) :
+        x = 3
+        y = int(self.startHeight/2)-3
+        startx = int(0.25*self.MaxX) 
+        starty = int(0.25*self.MaxY)
+        X = int(0.5*self.startWidth-10)
+        uni.mvaddstr(starty-1,startx, "*"*X+"Welcome to SabOOters"+"*"*X)
+        uni.refresh()
+        uni.box(self.Menu, 0, 0)
+        for i in range(0, len(self.startChoices)):
+            if (self.highlight == i + 1):
+                uni.wattron(self.Menu, uni.A_REVERSE)
+                uni.mvwaddstr(self.Menu, y, x,self.startChoices[i])
+                uni.wattroff(self.Menu, uni.A_REVERSE)
+            else:
+                uni.mvwaddstr(self.Menu, y, x, self.startChoices[i])
+            y += 2
+        uni.wrefresh(self.Menu)
+    def inputLoop(self) :
+        while True :
+            choice = 0
+            c = uni.wgetch(self.Menu)
+            if c == uni.KEY_UP:
+                if self.highlight == 1:
+                    self.highlight == len(self.startChoices)
+                else:
+                    self.highlight -= 1
+            elif c == uni.KEY_DOWN:
+                if self.highlight == len(self.startChoices):
+                    self.highlight = 1
+                else:
+                    self.highlight += 1
+            elif c == 10:   # ENTER is pressed
+                choice = self.highlight
+            else:
+                uni.mvaddstr(22, 0, str.format("Please press ENTER to choose an option"))
+                uni.clrtoeol()
+                uni.refresh()
+            self.printStart()
+            if c == 10 :
+                if choice == 1 :
+                    self.renseignements()
+                    break
+                elif choice == 2 :
+                    self.showRules()
+                else:
+                    sys.exit(1)
+    def showRules(self) :
+        uni.clear()     
+        startx = int(0.1*self.MaxX) 
+        starty = int(0.1*self.MaxY)
+        startHeight = int(0.8*self.MaxY)
+        startWidth = int(0.8*self.MaxX)
+        self.Rules = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(self.Rules, 0, 0)
+        uni.mvwaddstr(self.Rules,starty+6,startx+6, "")
+        uni.wrefresh(self.Rules)
+
+        # Ajouter les règles du jeu
+        uni.wgetch(self.Rules)
+        uni.clear()
+        self.printStart()
+    def renseignements(self) :
+        uni.clear()
+        startx = int(0.2*self.MaxX) 
+        starty = int(0.2*self.MaxY)
+        startHeight = int(0.6*self.MaxY)
+        startWidth = int(0.6*self.MaxX)
+        info = uni.newwin(startHeight, startWidth, starty, startx)
+        uni.box(info, 0, 0)
+        uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+        uni.wrefresh(info)
+        while True :
+            uni.echo()
+            uni.curs_set(1)
+            nombreJoueurs = uni.mvwgetstr(info, starty+1, startx-5+21)
+            uni.curs_set(0)
+            uni.noecho()
+            try :
+                self.nombreJoeurs = int(nombreJoueurs)
+            except :
+                uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+                uni.wclrtoeol(info)
+                uni.mvwaddstr(info, starty+3, startx-10, "Veuillez donner un nombre valide")
+                uni.wclrtoeol(info)
+                uni.box(info, 0, 0)
+                uni.wrefresh(info)
+                continue
+            if self.nombreJoeurs > 10 or self.nombreJoeurs < 3 :
+                uni.mvwaddstr(info, starty+1, startx-5, "Nombre de Joueurs : ")
+                uni.wclrtoeol(info)
+                uni.mvwaddstr(info, starty+3, startx-10, "Veuillez donner un nombre entre 3 et 10")
+                uni.wclrtoeol(info)
+                uni.box(info, 0, 0)
+                uni.wrefresh(info)
+                continue
+            break
 class Jeu() :
     def __init__(self) :
         self.scr = StartMenu()
@@ -34,7 +153,6 @@ class Jeu() :
                         j.Score += gold
                 continue
             orPioche = []
-            print(self.Gold)
             for i  in range(self.nombreChercheur) :
                 c = choice(self.Gold)
                 orPioche.append(c)
@@ -48,7 +166,6 @@ class Jeu() :
                     i = 0
                 j = self.listJoueurs[i]
                 if j.Role == "Mineur" :
-                    p += 1
                     uni.clear()
                     self.printGold(interface, orPioche)
                     uni.mvwaddstr(interface, starty, startx, f"Joueur {j.id}, choisissez une carte : ")
@@ -60,8 +177,26 @@ class Jeu() :
                     uni.wclrtoeol(interface)
                     uni.noecho()
                     uni.curs_set(0)
+                    try :
+                        n = int(s) 
+                    except :
+                        uni.waddstr(interface, starty, startx, "Veuillez donner un nombre")
+                        uni.wclrtoeol(interface)
+                        uni.wrefresh(interface)
+                        continue
+                    if n >= len(orPioche) :
+                        uni.waddstr(interface, starty, startx, "Veuillez donner un nombre valide")
+                        uni.wclrtoeol(interface)
+                        uni.wrefresh(interface)
+                        continue
+                        
                     j.Score += orPioche[int(s)]
                     orPioche.remove(orPioche[int[s]])
+                p+= 1
+            self.giveRoles()
+            self.getGold()
+            self.initDeck()
+            self.giveCards()
             
             
 
@@ -146,10 +281,10 @@ class Jeu() :
                 for x in range(3) :
                     if y == 0 or y == 2 :
                         uni.mvwaddstr(interface, starty+y, startx+2*x, u"\u2588"*2)
-                        uni.wclrteol(interface)
+                        uni.wclrtoeol(interface)
                     if y == 1 :
                         uni.mvwaddstr(interface, starty+y, startx, f"  {card.Value}G")
-                        uni.wclrteol(interface)
+                        uni.wclrtoeol(interface)
                         
             uni.mvwaddstr(interface, starty+4,startx+2, f"({i})")
             uni.wclrtoeol(interface)
@@ -539,12 +674,12 @@ class Jeu() :
                         mat[y][x].reveal()
             if x-1 > 0 :
                 if mat[y][x-1].posee and mat[y][x-1].Type == "+":
-                    if mat[y][x-1].Mat[1][0] == 0 :
+                    if mat[y][x-1].Mat[1][2] == 0 :
                         mat[y][x].reveal()
             if x+1 < self.t.dimX :
                
                 if mat[y][x+1].posee and mat[y][x+1].Type == "+":
-                    if mat[y][x+1].Mat[1][2] == 0 :
+                    if mat[y][x+1].Mat[1][0] == 0 :
                         mat[y][x].reveal()
             if mat[y][x].Type == "G" and mat[y][x].State != "Hidden" :
                 return True

@@ -205,13 +205,13 @@ class Jeu() :
             print(f"Joueur {i} : {j.name}      ", end="")
         print(" ")
         for j in self.listJoueurs :
-            print(f"pioche : {j.state['pioche']}        ", end= "" )
+            print(f"pioche : {j.state['pioche']}        " + " "*len(j.name), end= "" )
         print(" ")
         for j in self.listJoueurs :
-            print(f"lampe : {j.state['lampe']}         ", end= "" )
+            print(f"lampe : {j.state['lampe']}         " + " "*len(j.name), end= "" )
         print(" ")
         for j in self.listJoueurs :
-            print(f"chariot : {j.state['chariot']}       ", end= "" )
+            print(f"chariot : {j.state['chariot']}       " + " "*len(j.name), end= "" )
         print(" ")
     
     def printInterface(self) :
