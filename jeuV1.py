@@ -2,6 +2,34 @@ from interface import *
 from os import system
 
 class Jeu() :
+    """Class Jeu, gère la logique du jeu est son initialisation
+    
+    Attributs :
+        nombreJoueurs (int) : le nombre de joueurs dans la partie
+        listJoueur ([]Joueur) : list des joueurs dans la partie
+        nbManche (int) : nombre de la manche actuelle
+        nombreChercheur (int) : nombre de chercheurs d'or dans la partie
+        Deck ([]Carte) : Cartes restantes dans la pioche
+        Gold ([]Or) : Cartes d'or restantes
+        t (Table) : La table du jeu
+    
+    Méthodes :
+        getPlayers() : demande un input de l'utilisateur qui donnera le nombre de joueurs, et le nom de chacun
+        giveRoles() : attribue un rôle à chaque joueur aléatoirement 
+        printRules() : affiche les rêgles du jeu
+        printInterface() : premier affichage de l'interface du jeu
+        refreshInterface() : update de l'interface du jeu
+        gameLoop() : lance la boucle du jeu principale
+        printLeaderboard() : affiche les joueurs par ordre du score finale
+        printGold(orPioche : []Or) : affiche les cartes d'or piochées
+        getGold() : récupère la liste des cartes d'or issue d'un fichier text
+        initDeck() : récupère les cartes du jeu issue d'un fichier text
+        giveCards() : donne à chaque joueur un certain nombre de cartes au début de la manche
+        printCards(j : Joueur) : affiche les cartes d'un joueur j
+        printJoueurs() : affiche les joueurs du jeu ainsi que les états de leurs outils
+        checkWin() : vérifie si la manche est finie
+        printWinner(result : bool, j : Joueur) affiche le joueur qui a posé la carte gagnante
+    """
     def __init__(self) :
         self.nombreJoueurs = 0
         self.listJoueurs = []
@@ -233,6 +261,7 @@ class Jeu() :
         self.t.affTable()
         self.printJoueurs()
         self.printCards(self.listJoueurs[0])
+        
     def refreshInterface(self, j) :
         system("cls")
         print(f"Tour du Joueur {j.id} : {j.name}, {j.Role}")
@@ -240,6 +269,7 @@ class Jeu() :
         self.t.affTable()
         self.printJoueurs()
         self.printCards(j)
+        
     def gameloop(self) :
         i = 0
         lostFlag = 0
