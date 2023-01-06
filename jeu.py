@@ -288,7 +288,7 @@ class Jeu() :
                     return False, j
             
             s = input("Quelle carte à jouer ? 'P' pour passer ")
-            if s == "P" :
+            if s == "P" or s == "p" :
                 s = input("Quelle carte à céder pour passer le tour ?")
                 try :
                     n = int(s)
