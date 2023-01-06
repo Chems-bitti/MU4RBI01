@@ -9,4 +9,11 @@ Le principe du jeu est le suivant :
 
 Afin de lancer le jeu, lancer le fichier `jeu.py` avec python3.
 
+# Extensions
+
+Il est possible de rajouter des cartes au jeu en modifiant les fichiers action.txt (cartes Action), chemin.txt (cartes Chemin), gold.txt (cartes Or).
+ - Pour les cartes actions, suivre la syntaxe du fichier : `<nombre de carte> outil_touché positif(+)/negatif(-)`
+ - Pour les cartes chemin, suivre la syntaxe du fichier : `<nombre de carte> Chemin_décrit(URLD) Type`
+ - Pour les cartes Or, suivre la syntaxe du fichier : `<nombre de cartes> <nombre de lingots d'or>`
+
 lien du github : https://github.com/Chems-bitti/MU4RBI01
