@@ -46,6 +46,7 @@ class Jeu() :
             self.initDeck()
             self.giveCards()
             self.printInterface()
+            self.t = Table()
             minerWin, j = self.gameloop()
             self.nbManche +=1
             self.refreshInterface(j)
@@ -101,7 +102,7 @@ class Jeu() :
             print(f"{i+1}. Joueur {j.id}, {j.name}...........{j.Score}")
          
     def printGold(self, orPioche) :
-        for y in range(3) :
+        for y in range(4) :
             for i, card in enumerate(orPioche) :
                 for x in range(3) :
                     if y == 0 or y == 2 :
@@ -109,6 +110,8 @@ class Jeu() :
                     if y == 1 :
                         print(f"  {card.Value}G  ", end="")
                         break
+                if y == 3 :
+                    print(f"  ({i}) ", end="")
                 print(" "*5, end="")
             print(" ")
                         
